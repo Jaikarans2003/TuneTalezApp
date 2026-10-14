@@ -11,9 +11,9 @@ Plain-English progress for builders. Code details live in the Phase 1 plan.
 
 ## Up next
 
-- [ ] **Step 4 — Wire the app** — Home, series, Google / email+password sign-in, My List.
+- [x] **Step 4 — Wire the app** — Home, series, Google / email+password sign-in, My List (awaiting auth `config push` if diff is clean).
 - [ ] **Step 5 — Deploy + CI + docs** — Staging site live, GitHub Actions, SETUP notes, payments decisions recorded for Phase 3.
-- [ ] **Step 6 — GitHub** — Push `staging` after the GitHub repo URL is pasted.
+- [ ] **Step 6 — GitHub** — Remote already set; keep pushing `staging` after commits.
 
 ## Phase 1 done when
 

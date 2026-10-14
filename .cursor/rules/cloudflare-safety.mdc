@@ -1,20 +1,43 @@
 ---
-description: TuneTalez Cloudflare zone safety — never touch old R2/cdn; DNS first; API fallback for Pages domains
+description: Shared Azonova Cloudflare account — TuneTalez-only resource scope
 globs: "**/*","wrangler.toml",".github/**"
-alwaysApply: false
+alwaysApply: true
 ---
 
-# Zone
+# Account
 
-Work only in zone `tunetalez.com` on the TuneTalez Cloudflare account.
+Cloudflare account is shared by **Azonova Technologies Pvt Ltd** across separate products (OkVevo, TuneTalez, future ones). This project is **TuneTalez only**.
+
+# Allowed create / modify (this project only)
+
+- DNS records in zone `tunetalez.com`
+- R2 buckets named `tunetalez-*`
+- Pages projects named `tunetalez-*`
+- Custom domains under `tunetalez.com`
 
 # Never touch
 
-- Old R2 bucket used by the previous CDN setup
-- `cdn.tunetalez.com` (legacy hostname)
-- Production Pages / apex / www while doing staging-only Phase 1 work, except listing for conflict checks
+Never modify, delete, rename, or change CORS / domains / settings of anything else:
 
-# New resources (Phase 1)
+- `okvevo-*` (or any non-`tunetalez-*` bucket / Pages / Worker)
+- Other zones
+- Other buckets, Pages projects, or Workers
+- Legacy `cdn.tunetalez.com` / old non-`tunetalez-*` media setup
+
+Listing other account resources **read-only** is fine (e.g. conflict checks).
+
+# Before any create / change / delete
+
+1. List existing resources in scope.
+2. Show exactly what will change.
+3. Confirm the target name starts with `tunetalez` (or is a `tunetalez.com` DNS / custom-domain hostname).
+4. Only then apply.
+
+# Account-wide → stop and ask
+
+Billing, members, API tokens, and other account-level settings: **stop and ask** before any change.
+
+# Phase 1 resource map
 
 | Resource | Name / hostname |
 | --- | --- |
@@ -28,8 +51,7 @@ Work only in zone `tunetalez.com` on the TuneTalez Cloudflare account.
 - Staging media: allow `https://staging.tunetalez.com`, `https://tunetalez.com`, `http://localhost:8081`.
 - Prod media (`tunetalez-media-prod`): allow **only** `https://tunetalez.com` (no localhost, no staging origin).
 
-# Process
+# Process notes
 
-1. List existing DNS and buckets first. Stop and ask if `media-staging`, `media`, or `staging` already exist in a conflicting way.
-2. Prefer custom domains over `*.r2.dev`.
-3. If wrangler cannot attach a Pages custom domain, use the Cloudflare API with `CLOUDFLARE_API_TOKEN` — do not stop for missing wrangler UX.
+1. Prefer custom domains over `*.r2.dev`.
+2. If wrangler cannot attach a Pages custom domain, use the Cloudflare API with `CLOUDFLARE_API_TOKEN` — do not stop for missing wrangler UX.

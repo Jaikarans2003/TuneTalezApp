@@ -17,7 +17,8 @@ Sign up / log in = **Google** OR **email + password**. No OTP, no magic link.
 
 - `config.toml`: email signup on; `minimum_password_length = 8`; `enable_confirmations = false` (**staging only** — turn confirmations on before launch with custom SMTP).
 - `[auth.external.google]` enabled; `client_id` / `secret` via `env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)` / `env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)`.
-- `site_url = https://staging.tunetalez.com`; redirects include `http://localhost:8081`.
+- `site_url = https://staging.tunetalez.com`; additional redirects (staging): `https://staging.tunetalez.com/**`, `http://localhost:8081/**`, `tunetalez://**`, `exp://**` (Expo Go, staging only).
+- App scheme: `tunetalez` in `app.json`. Phase 1 Google = `signInWithOAuth({ provider: 'google' })` only (web redirect; Expo Go uses `expo-web-browser` + PKCE `exchangeCodeForSession`). No `@react-oauth/google` or native Google SDKs.
 - Google OAuth consent screen is published **In production** (scopes: `openid`, email, profile only). Anyone can sign in on staging.
 - Google branding privacy URL: `https://tunetalez.com/privacy` (app ships a placeholder `/privacy` page; replace with the real policy before launch).
 
