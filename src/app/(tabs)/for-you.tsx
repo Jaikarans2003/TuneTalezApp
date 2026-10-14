@@ -1,10 +1,10 @@
 import { PlaceholderScreen } from '@/components/PlaceholderScreen';
 
-export default function BrowseScreen() {
+export default function ForYouScreen() {
   return (
     <PlaceholderScreen
-      title="Browse"
-      subtitle="Catalog browse UI placeholder."
+      title="For You"
+      subtitle="Personalized rails placeholder."
     />
   );
 }

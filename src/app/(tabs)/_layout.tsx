@@ -31,9 +31,9 @@ export default function TabsLayout() {
         tabBarIcon: ({ color }) => <TabDot color={color} />,
       }}>
       <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="browse" options={{ title: 'Browse' }} />
+      <Tabs.Screen name="for-you" options={{ title: 'For You' }} />
       <Tabs.Screen name="my-list" options={{ title: 'My List' }} />
-      <Tabs.Screen name="coins" options={{ title: 'Coins' }} />
+      <Tabs.Screen name="rewards" options={{ title: 'Rewards' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
     </Tabs>
   );
