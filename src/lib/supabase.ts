@@ -1,11 +1,15 @@
+import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
+import { polyfillWebCrypto } from 'expo-standard-web-crypto';
 import { AppState, Platform } from 'react-native';
 
 import { env } from '@/config/env';
 import type { Database } from '@/types/database';
+
+polyfillWebCrypto();
 
 export const supabase = createClient<Database>(
   env.EXPO_PUBLIC_SUPABASE_URL,

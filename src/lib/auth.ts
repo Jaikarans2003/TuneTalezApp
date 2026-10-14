@@ -9,6 +9,19 @@ WebBrowser.maybeCompleteAuthSession();
 
 export const MIN_PASSWORD_LENGTH = 8;
 
+/**
+ * Expo Go's default makeRedirectUri() is exp://<LAN_IP>:8081.
+ * Supabase Auth rejects non-loopback IP hostnames before checking the
+ * redirect allowlist (falls back to site_url). preferLocalhost →
+ * exp://localhost:8081 which is allowlisted via exp://** and works with
+ * openAuthSessionAsync on device.
+ */
+export function getOAuthRedirectTo() {
+  const redirectTo = makeRedirectUri({ preferLocalhost: true });
+  console.log('[auth] redirectTo', redirectTo);
+  return redirectTo;
+}
+
 export async function exchangeSessionFromUrl(url: string) {
   const { params, errorCode } = QueryParams.getQueryParams(url);
   if (errorCode) throw new Error(errorCode);
@@ -21,7 +34,7 @@ export async function exchangeSessionFromUrl(url: string) {
 
 /** Google via Supabase OAuth only — no @react-oauth/google or native Google SDKs. */
 export async function signInWithGoogle() {
-  const redirectTo = makeRedirectUri();
+  const redirectTo = getOAuthRedirectTo();
 
   if (Platform.OS === 'web') {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -41,6 +54,14 @@ export async function signInWithGoogle() {
   });
   if (error) throw error;
   if (!data.url) throw new Error('No OAuth URL returned');
+
+  // Confirm Supabase kept our redirect_to (not site_url fallback).
+  try {
+    const oauthUrl = new URL(data.url);
+    console.log('[auth] oauth redirect_to', oauthUrl.searchParams.get('redirect_to'));
+  } catch {
+    /* ignore */
+  }
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (result.type === 'success') {
