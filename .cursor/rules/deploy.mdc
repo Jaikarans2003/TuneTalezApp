@@ -1,0 +1,29 @@
+---
+description: TuneTalez staging vs production deploys. npm ci, .nvmrc, supabase link before db push.
+globs: ".github/**","eas.json","wrangler.toml"
+alwaysApply: false
+---
+
+# Environments
+
+One repo. Two deploy environments. Secrets live only in each platform's secret store, never in a committed `.env`.
+
+| Layer | Staging | Production |
+| --- | --- | --- |
+| Git branch | `staging` | `production` |
+| Supabase | `tunetalez-staging` | production project (own ref) |
+| Cloudflare Pages | `tunetalez-web-staging` → `staging.tunetalez.com` | `tunetalez-web` → apex/www |
+| R2 | `tunetalez-media-staging` → `media-staging.tunetalez.com` | `tunetalez-media-prod` → `media.tunetalez.com` |
+| EAS | `preview` profile (later) | `production` profile (later) |
+| Secrets | GitHub Environment `staging` | GitHub Environment `production` + required reviewer |
+| Local | `.env.local` (gitignored) → staging only | — |
+
+# CI rules
+
+- Use `node-version-file: .nvmrc` and `npm ci` (commit `package-lock.json`).
+- Before `supabase db push`, run `supabase link --project-ref $SUPABASE_PROJECT_REF` with `SUPABASE_DB_PASSWORD` set (non-interactive).
+- Staging CI pushes schema only — **never** `--include-seed`.
+- Never hardcode a production credential.
+- Never let a non-production branch touch the production Supabase project.
+- Push to `staging` deploys staging. Only a reviewed merge into `production` deploys live.
+- Local machines talk only to staging.

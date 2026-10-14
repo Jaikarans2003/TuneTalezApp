@@ -1,0 +1,26 @@
+---
+description: TuneTalez Phase 3 payments decisions (docs only in Phase 1). No payment code yet.
+globs: "**/*razorpay*","**/functions/**","**/*payment*"
+alwaysApply: false
+---
+
+# Phase 1 status
+
+No payment code, tables, SDKs, or merchant accounts in Phase 1. This file records locked Phase 3 decisions so later work does not reopen them casually.
+
+# Locked Phase 3 decisions
+
+1. **One coin wallet per user** in Supabase. All purchase sources credit that wallet. Coins work cross-platform on one account.
+2. **Server-only credit.** Coins are credited only after a verified purchase (Razorpay webhook signature / Apple or Google receipt). Never credit from the client success callback.
+3. **Channels**
+   - Web: Razorpay (primary / cheapest path).
+   - iOS: Apple IAP consumables only.
+   - Android: Google Play Billing (Razorpay alternative billing deferred).
+4. **HARD RULE — no in-app web purchase promo.** No in-app text, button, link, or price that points users to a web purchase or says web is cheaper. Promote web purchase only outside the apps (site, ads, email, social).
+5. Coin pack prices may differ by platform.
+6. Phase 3 chooses RevenueCat vs direct Edge Function receipt validation.
+7. Before Phase 3 implementation: re-check Google global fee / link-out rules (India timeline) and Apple vs CCI India case.
+
+# Implementation reminder (Phase 3)
+
+Webhook / receipt verification is the only trust boundary for crediting coins. Signature and idempotency checks must not be skipped, loosened, or replaced.

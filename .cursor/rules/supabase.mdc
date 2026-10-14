@@ -1,0 +1,37 @@
+---
+description: TuneTalez Supabase Phase 1 schema, RLS, GRANTs, seed, and CI rules
+globs: supabase/**,**/*.sql
+alwaysApply: false
+---
+
+# Phase 1 tables
+
+Use only these five tables until a later phase adds more:
+
+| Table | Purpose |
+| --- | --- |
+| `profiles` | One row per auth user (created by sign-up trigger) |
+| `series` | Published series catalog (Home rails) |
+| `episodes` | Episodes per series (seeded; player comes later) |
+| `my_list` | Per-user saved series |
+| `watch_history` | Per-user resume state (schema now; UI later if unused) |
+
+No payment, purchase, unlock, or subscription tables in Phase 1.
+
+# Migration requirements
+
+- Explicit `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` on all five tables.
+- Sign-up trigger function: `SECURITY DEFINER` + `SET search_path = ''`.
+- Explicit `GRANT`s so `anon` / `authenticated` can use what RLS allows (do not rely on default privileges alone).
+- RLS: users read/write only their own `profiles`, `my_list`, and `watch_history` rows. `series` and `episodes` are publicly readable when published.
+
+# Seed vs CI
+
+- Seed data lives only in `supabase/seed.sql` (e.g. 6 series × 10 episodes).
+- Local: `supabase db push --include-seed`.
+- **CI never seeds.** CI runs `supabase link` then `supabase db push` without `--include-seed`.
+
+# Environments
+
+- Local and staging work use the staging project only (`tunetalez-staging`).
+- Never point a non-production branch at production Supabase.

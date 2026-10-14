@@ -1,0 +1,35 @@
+---
+description: TuneTalez Cloudflare zone safety — never touch old R2/cdn; DNS first; API fallback for Pages domains
+globs: "**/*","wrangler.toml",".github/**"
+alwaysApply: false
+---
+
+# Zone
+
+Work only in zone `tunetalez.com` on the TuneTalez Cloudflare account.
+
+# Never touch
+
+- Old R2 bucket used by the previous CDN setup
+- `cdn.tunetalez.com` (legacy hostname)
+- Production Pages / apex / www while doing staging-only Phase 1 work, except listing for conflict checks
+
+# New resources (Phase 1)
+
+| Resource | Name / hostname |
+| --- | --- |
+| R2 staging | `tunetalez-media-staging` → `media-staging.tunetalez.com` |
+| R2 prod | `tunetalez-media-prod` → `media.tunetalez.com` |
+| Pages staging | `tunetalez-web-staging` → `staging.tunetalez.com` |
+| Pages prod | `tunetalez-web` (attach apex/www later) |
+
+# CORS
+
+- Staging media: allow `https://staging.tunetalez.com`, `https://tunetalez.com`, `http://localhost:8081`.
+- Prod media (`tunetalez-media-prod`): allow **only** `https://tunetalez.com` (no localhost, no staging origin).
+
+# Process
+
+1. List existing DNS and buckets first. Stop and ask if `media-staging`, `media`, or `staging` already exist in a conflicting way.
+2. Prefer custom domains over `*.r2.dev`.
+3. If wrangler cannot attach a Pages custom domain, use the Cloudflare API with `CLOUDFLARE_API_TOKEN` — do not stop for missing wrangler UX.

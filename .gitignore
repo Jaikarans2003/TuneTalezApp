@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+
+# Expo / Metro
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+ios/
+android/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+.cursor/mcp.json
+
+# Debug / logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# macOS / IDE
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing / coverage
+coverage/
+
+# Local supabase
+supabase/.branches
+supabase/.temp
+
+# Graphify generated (rebuild with `graphify update .`)
+graphify-out/
