@@ -1,0 +1,43 @@
+---
+description: How to show Expo Go QR and the web app on the Mac — chat/Cursor browser often fail
+alwaysApply: true
+---
+
+# Expo Go QR + web preview
+
+When the user asks to show a QR, test on Expo Go, or open the **web app**, **do not rely on chat images, ASCII QR, or Cursor browser MCP** — they often do not render / reach localhost.
+
+## Phone (Expo Go)
+
+1. Start Metro: `npx expo start --port 8081` (keep it running).
+2. Resolve LAN IP (`ipconfig getifaddr en0` / `en1`) with full permissions.
+3. Build URL: `exp://<LAN_IP>:8081`.
+4. Write PNG QR to `.expo/expo-go-qr.png` (`.expo/` is gitignored) via Node `qrcode`.
+5. Write `.expo/qr.html` embedding the PNG + the `exp://` URL.
+6. **Show on the Mac UI**:
+   ```bash
+   open .expo/expo-go-qr.png
+   open .expo/qr.html
+   ```
+7. Paste the plain `exp://` URL in chat for manual entry.
+
+## Web app
+
+Phone and web are separate. Start (or restart) with web enabled — works on Windows and Mac:
+
+```bash
+npx expo start --web
+```
+
+Do not assume the user can see the app inside Cursor chat or the IDE browser.
+
+## Do not
+
+- Assume a QR/image in chat is visible.
+- Depend on Cursor browser MCP for `localhost` (often `ERR_CONNECTION_REFUSED`).
+- Commit `.expo/` artifacts or print secrets from `.env.local`.
+
+## If phone cannot connect
+
+- Same Wi‑Fi as the Mac.
+- If LAN fails: `npx expo start --tunnel`, then repeat the open-PNG flow for the new URL.
