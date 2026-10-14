@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Phase 1 status
 
-No payment code, tables, SDKs, or merchant accounts in Phase 1. This file records locked Phase 3 decisions so later work does not reopen them casually.
+No payment code, tables, SDKs, or merchant accounts in Phase 1. This file records locked Phase 3 decisions so later work does not reopen them casually. Manual account items live in `docs/SETUP.md` (Before launch) and `docs/PRODUCTION_CHECKLIST.md`.
 
 # Locked Phase 3 decisions
 

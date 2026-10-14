@@ -39,4 +39,19 @@ Phase 1 Step 4 should prefer email/password + browser OAuth Google so Expo Go QA
 
 ## Before launch
 
-See [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md).
+Do these before production go-live (also tracked in [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)):
+
+- Custom SMTP for auth email (Resend or Postmark) — staging has confirmations off
+- Prod Supabase on Pro (avoids pausing; needed for custom auth domain)
+- Bundle IDs TODO: set `ios.bundleIdentifier` / `android.package` (not set in Phase 1)
+- Apple Developer org account ($99/yr; D-U-N-S for TuneTalez entity)
+- Google Play Console ($25 one-time)
+- Enroll Apple Small Business Program + Google Play 15% tier
+- Razorpay business account + KYC
+- iOS IAP for coins (per `payments.mdc`)
+
+## GitHub Environments
+
+**staging** (created in Phase 1): secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_MEDIA_URL`, `EXPO_PUBLIC_APP_ENV=staging`.
+
+**production**: same key names for production values — create only when going live (see PRODUCTION_CHECKLIST.md).
