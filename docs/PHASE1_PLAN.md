@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: step-3-cloudflare
     content: List DNS/buckets; R2; staging CORS with localhost; prod CORS without localhost; domains; posters; Pages via wrangler or CF API; curl verify
-    status: pending
+    status: completed
   - id: step-4-connect
     content: Official Expo supabase.ts; Google + email/password auth; Home/series/My List/Profile; confirm graphify --help then graphify update .
     status: pending

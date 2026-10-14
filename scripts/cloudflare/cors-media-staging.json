@@ -1,0 +1,17 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://staging.tunetalez.com",
+          "https://tunetalez.com",
+          "http://localhost:8081"
+        ],
+        "methods": ["GET", "HEAD"],
+        "headers": ["*"]
+      },
+      "exposeHeaders": ["ETag"],
+      "maxAgeSeconds": 86400
+    }
+  ]
+}
