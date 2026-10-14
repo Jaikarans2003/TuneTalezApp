@@ -5,10 +5,10 @@ Plain-English progress for builders. Code details live in the Phase 1 plan.
 ## Done
 
 - [x] **Step 0 — Safety** — Git repo on `staging`, secrets ignored, staging Supabase + Cloudflare access checked, OnStar Cursor rules replaced with TuneTalez, this task board created.
+- [x] **Step 1 — App skeleton** — Expo + Expo Router TypeScript app, 5 tabs + stack screens, env gate, LF line endings (no payment code).
 
 ## Up next
 
-- [ ] **Step 1 — App skeleton** — Expo + Expo Router TypeScript app, tabs/screens, env gate (no payment code).
 - [ ] **Step 2 — Staging database** — Supabase schema, RLS, seed series/episodes, email OTP.
 - [ ] **Step 3 — Cloudflare media & hosting** — R2 posters, staging Pages domain (leave old CDN alone).
 - [ ] **Step 4 — Wire the app** — Home, series, sign-in OTP, My List.

@@ -6,8 +6,10 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+.metro-health-check*
 
 # Native
+.kotlin/
 *.orig.*
 *.jks
 *.p8
@@ -47,5 +49,8 @@ coverage/
 supabase/.branches
 supabase/.temp
 
-# Graphify generated (rebuild with `graphify update .`)
+# Graphify
 graphify-out/
+
+# Template leftover / example
+example/

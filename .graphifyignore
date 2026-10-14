@@ -1,0 +1,7 @@
+# Keep the knowledge graph on app/docs code only — not agent tooling.
+.cursor/
+node_modules/
+graphify-out/
+dist/
+.expo/
+**/skills/
