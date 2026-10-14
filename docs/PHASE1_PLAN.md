@@ -4,18 +4,18 @@ overview: "Greenfield Phase 1 for TuneTalez: Expo + Expo Router app, staging Sup
 todos:
   - id: step-0-safety
     content: gitignore (incl mcp.json) + git init on staging + CLI verify (list may show staging only; link is real check) + full OnStar→TuneTalez rules + TASKS.md
-    status: pending
+    status: completed
   - id: step-1-skeleton
     content: Scaffold Expo Router TS, app.json web.output=single, .nvmrc, commit package-lock.json, no bundle IDs (TODO in SETUP), env.ts, tabs/stacks
-    status: pending
+    status: completed
   - id: step-2-supabase
-    content: Init/link staging; migration with ENABLE RLS + GRANTs + security definer trigger (search_path=''); seed.sql; db push --include-seed; OTP; types; anon verify
-    status: pending
+    content: Init/link staging; migration with ENABLE RLS + GRANTs + security definer trigger (search_path=''); seed.sql; db push --include-seed; Google + email/password auth; types; anon verify
+    status: completed
   - id: step-3-cloudflare
     content: List DNS/buckets; R2; staging CORS with localhost; prod CORS without localhost; domains; posters; Pages via wrangler or CF API; curl verify
     status: pending
   - id: step-4-connect
-    content: Official Expo supabase.ts; auth OTP; Home/series/My List/Profile; confirm graphify --help then graphify update .
+    content: Official Expo supabase.ts; Google + email/password auth; Home/series/My List/Profile; confirm graphify --help then graphify update .
     status: pending
   - id: step-5-ci-docs
     content: Export+Pages deploy; GHA with npm ci + .nvmrc + supabase link before db push (no seed); SETUP.md Before launch; payments.mdc Phase 3; typecheck/lint; commits
@@ -121,10 +121,10 @@ Before each Step 0–5 block: write a **3–5 line mini-plan**, then execute onl
    - GRANTs as in amendment 2
    - RLS policies as specified
 3. [`supabase/seed.sql`](supabase/seed.sql) only: 6×10 seed data.
-4. Email OTP in `config.toml`; `config push`; dashboard fallback in SETUP.md.
+4. Auth in `config.toml`: email + password (min length 8, `enable_confirmations = false` staging only); Google via `env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID/SECRET)`. No OTP / magic link. Show `config push` diff before applying.
 5. `supabase db push --include-seed` → gen types → `src/types/database.ts`.
 6. Anon verify: 6 series; my_list empty.
-7. Commit: `feat: staging schema, grants, RLS, seed.sql, email OTP`.
+7. Commit: `feat: staging schema, grants, RLS, seed.sql, email OTP` (auth later switched to Google + email/password).
 
 ---
 
@@ -148,10 +148,10 @@ Before each Step 0–5 block: write a **3–5 line mini-plan**, then execute onl
 **Mini-plan:** Official Expo client. Wire UI to data. Confirm graphify CLI then update graph.
 
 1. `supabase.ts` per official Expo quickstart (confirm via docs MCP).
-2. Auth provider + OTP screens.
+2. Auth provider + Google / email+password screens (per current Expo auth docs; see SETUP.md Expo Go vs dev build).
 3. Home rails + series page + My List + Profile.
 4. Confirm update syntax: `graphify --help`, then `graphify update .`.
-5. Commit: `feat: home, series, auth OTP, my list`.
+5. Commit: `feat: home, series, Google + email/password auth, my list`.
 
 ---
 
@@ -162,7 +162,10 @@ Before each Step 0–5 block: write a **3–5 line mini-plan**, then execute onl
 1. Export + deploy to `tunetalez-web-staging`. No `_redirects`. Verify: `curl -I https://staging.tunetalez.com/series/<id>` → 200.
 2. Workflows: `node-version-file: .nvmrc`, `npm ci`, `supabase link --project-ref $SUPABASE_PROJECT_REF` with `SUPABASE_DB_PASSWORD` env (non-interactive) before `db push` (no seed).
 3. [`docs/SETUP.md`](docs/SETUP.md) **"Before launch"** section:
-   - Custom SMTP (Resend/Postmark)
+   - Email confirmation + forgot password (custom SMTP: Resend/Postmark)
+   - Sign in with Apple on iOS (Apple guideline 4.8)
+   - Google brand verification + Supabase custom auth domain (consent shows “TuneTalez”, not supabase.co)
+   - Real privacy policy at https://tunetalez.com/privacy
    - Prod Supabase on Pro
    - Bundle IDs TODO (ios.bundleIdentifier / android.package not set in Phase 1)
    - Apple Developer org account ($99/yr; D-U-N-S for TuneTalez entity)
@@ -216,7 +219,7 @@ Verify: no `OnStar` / `onstar` under `.cursor/rules/`. Verify payments content v
 ## DONE criteria
 
 1. `https://staging.tunetalez.com` loads Home with 6 series + posters.
-2. Email OTP → My List save → sign out works.
+2. Google or email+password → My List save → sign out works.
 3. Verify outputs from Steps 0, 2, 3.
 4. Typecheck and lint passing.
 5. Commits on `staging`; push after you paste the GitHub repo URL.

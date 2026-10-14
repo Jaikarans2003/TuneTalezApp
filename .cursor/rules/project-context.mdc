@@ -8,7 +8,7 @@ alwaysApply: true
 
 Vertical short-episode drama app (1–3 min episodes, swipe-to-watch) for a mobile-first Indian audience. Monetized later by per-episode coin unlocks (Phase 3). Progress and list state sync across web, iOS, and Android on one account. Target scale: 10,000 users.
 
-Core journey (Phase 1): open Home → browse series rails → open a series → sign in with email OTP → save to My List → sign out. Episode video player, paywall, and coin purchase land in later phases.
+Core journey (Phase 1): open Home → browse series rails → open a series → sign in with Google or email + password → save to My List → sign out. Episode video player, paywall, and coin purchase land in later phases.
 
 ## Stack
 
@@ -16,7 +16,7 @@ Core journey (Phase 1): open Home → browse series rails → open a series → 
 | --- | --- |
 | App | Expo SDK + Expo Router, TypeScript (iOS, Android, Web) |
 | State / data | Direct Supabase client calls in Phase 1 (no Zustand / TanStack Query yet) |
-| Auth / DB | Supabase (Postgres, RLS, email OTP) |
+| Auth / DB | Supabase (Postgres, RLS, Google OAuth + email/password) |
 | Static / posters | Cloudflare R2 + custom domains |
 | Web hosting | Cloudflare Pages |
 | Mobile release | EAS Build + EAS Submit + EAS Update (later phases) |
@@ -37,7 +37,7 @@ Phase 1 talks to staging Supabase and staging R2/Pages only. No payment SDKs, ta
 
 ## Roadmap
 
-1. Foundation — Supabase schema + RLS, email OTP auth, Home / Series / My List / Profile, staging Pages + R2 posters
+1. Foundation — Supabase schema + RLS, Google + email/password auth, Home / Series / My List / Profile, staging Pages + R2 posters
 2. Content & Video — episode player, free/paywall logic, Stream (or equivalent) upload pipeline
 3. Payments — coin wallet + purchases per `payments.mdc` (Razorpay web, Apple IAP iOS, Play Billing Android)
 4. Polish & Store Prep — EAS builds, app store assets, QA across web/iOS/Android

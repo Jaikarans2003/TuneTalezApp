@@ -25,6 +25,8 @@ android/
 .env.*
 !.env.example
 .cursor/mcp.json
+client_secret*.json
+**/client_secret*.apps.googleusercontent.com.json
 
 # Debug / logs
 npm-debug.*
