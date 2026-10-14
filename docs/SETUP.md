@@ -37,6 +37,14 @@ Follow Supabase’s current Expo guides: [Expo quickstart](https://supabase.com/
 
 Phase 1 Step 4 should prefer email/password + browser OAuth Google so Expo Go QA stays possible; native SDK buttons can wait for store / Apple guideline work.
 
+**Expo Go + Google on a physical phone:** start Metro with a tunnel so the OAuth redirect is a hostname (not a LAN IP / localhost):
+
+```bash
+npx expo start --tunnel --port 8081
+```
+
+Full failure modes + mitigations (LAN IP → staging site, localhost → “Failed to download remote update”, missing `/auth/callback` → Unmatched Route, WebCrypto/PKCE): see Cursor rule [`.cursor/rules/expo-go-google-oauth.mdc`](../.cursor/rules/expo-go-google-oauth.mdc).
+
 ## Before launch
 
 Do these before production go-live (also tracked in [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)):

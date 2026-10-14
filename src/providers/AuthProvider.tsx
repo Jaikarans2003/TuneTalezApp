@@ -21,11 +21,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     let mounted = true;
-    void supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setLoading(false);
-    });
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setSession(data.session);
+      })
+      .catch((e) => {
+        console.warn('[auth] getSession failed', e);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
       setLoading(false);

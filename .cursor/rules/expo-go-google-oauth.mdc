@@ -1,0 +1,63 @@
+---
+description: Expo Go + Supabase Google OAuth pitfalls (redirect IP, localhost, tunnel, callback route, WebCrypto)
+alwaysApply: false
+---
+# Expo Go + Supabase Google OAuth (Phase 1 lessons)
+
+Phase 1 Google = `supabase.auth.signInWithOAuth({ provider: 'google' })` only (no `@react-oauth/google`, no native Google SDKs). Native Expo Go uses `expo-web-browser` + PKCE (`exchangeCodeForSession`).
+
+## What went wrong (root causes)
+
+### 1. LAN IP redirect → lands on staging website
+
+`makeRedirectUri()` in Expo Go defaults to `exp://<LAN_IP>:8081`.
+
+Supabase Auth (GoTrue) **rejects any non-loopback IP hostname before checking** `additional_redirect_urls`. The flow silently falls back to `site_url` (`https://staging.tunetalez.com`). Symptom: after Google, user is on the staging **website**, not the app.
+
+Allowlist entries like `exp://**` do **not** save a LAN-IP redirect.
+
+### 2. `preferLocalhost` / `exp://localhost` → “Failed to download remote update”
+
+Using `makeRedirectUri({ preferLocalhost: true })` produces `exp://localhost:8081`, which Supabase accepts (not a public IP).
+
+On a **physical phone**, Expo Go treats that deep link as “open this experience from localhost” and tries to download the JS bundle from the **phone itself** → `java.io.IOException: Failed to download remote update` (blue Expo error screen).
+
+### 3. Missing `/auth/callback` route → “Unmatched Route”
+
+When `makeRedirectUri({ path: 'auth/callback' })` is used, the return URL looks like:
+
+`exp://<host>/--/auth/callback?code=…`
+
+Expo Router must have a real screen at that path. Without it: **Unmatched Route / Page could not be found** (even though the OAuth `code` is present and valid).
+
+### 4. Missing `crypto.subtle` → WebCrypto / plain PKCE warning
+
+Expo Go has `getRandomValues` (via `react-native-get-random-values`) but **not** `crypto.subtle.digest`. Supabase PKCE then warns and falls back to `plain` instead of `S256`.
+
+`expo-standard-web-crypto` alone is **not** enough (no `subtle`). Polyfill must run **before** `@supabase/supabase-js` is imported.
+
+## Mitigations (do this)
+
+| Concern | Mitigation |
+| --- | --- |
+| Redirect host for Expo Go Google | Start Metro with **tunnel**: `npx expo start --tunnel --port 8081`. Redirect becomes a hostname (`*.exp.direct`), which passes GoTrue and Expo Go can fetch the bundle. |
+| Redirect builder | `makeRedirectUri({ path: 'auth/callback' })` — **no** `preferLocalhost` for physical-device Expo Go. Dev/standalone builds may use scheme `tunetalez`. |
+| Deep link target | Keep `src/app/auth/callback.tsx` — exchange `code` via `exchangeCodeForSession`, then `router.replace` to Profile/Home. Register `auth/callback` in root Stack. |
+| Allowlist (`config.toml`) | Staging includes `exp://**`, `tunetalez://**`, `http://localhost:8081/**`, `https://staging.tunetalez.com/**`. Push only after `supabase config diff`. |
+| WebCrypto | `src/lib/polyfills.ts` installs `crypto.subtle.digest` via `expo-crypto`; import it first from `_layout.tsx` and `supabase.ts`. |
+| QR / testing | Follow `expo-go-qr.mdc` — open PNG/HTML on the Mac; paste plain `exp://` URL in chat. For Google on device, the QR must be the **tunnel** URL, not LAN. |
+
+## Do not
+
+- Do not “fix” Expo Go Google by forcing `preferLocalhost: true` on a physical device.
+- Do not expect `exp://<LAN_IP>` to work with hosted Supabase Auth.
+- Do not add `@react-oauth/google` or native Google SDKs in Phase 1 (native account picker = production checklist).
+- Do not remove `auth/callback` while `path: 'auth/callback'` is still used in `makeRedirectUri`.
+
+## Quick debug
+
+Log `redirectTo` from `getOAuthRedirectTo()` and the `redirect_to` query on the OAuth URL from `signInWithOAuth`:
+
+- If `redirect_to` is `https://staging.tunetalez.com` → allowlist/IP rejection (use tunnel hostname).
+- If Expo shows download failure after Google → you redirected to `localhost` / unreachable host.
+- If Unmatched Route with `?code=` → missing `app/auth/callback` screen.

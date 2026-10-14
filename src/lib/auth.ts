@@ -1,3 +1,4 @@
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as QueryParams from 'expo-auth-session/build/QueryParams';
 import * as WebBrowser from 'expo-web-browser';
@@ -10,15 +11,29 @@ WebBrowser.maybeCompleteAuthSession();
 export const MIN_PASSWORD_LENGTH = 8;
 
 /**
- * Expo Go's default makeRedirectUri() is exp://<LAN_IP>:8081.
- * Supabase Auth rejects non-loopback IP hostnames before checking the
- * redirect allowlist (falls back to site_url). preferLocalhost →
- * exp://localhost:8081 which is allowlisted via exp://** and works with
- * openAuthSessionAsync on device.
+ * Redirect rules (Supabase GoTrue):
+ * - Non-loopback IP hosts (exp://192.168.x.x) are rejected BEFORE the allowlist.
+ * - exp://localhost works for Supabase but on a physical phone Expo Go tries to
+ *   download the bundle from the device → "Failed to download remote update".
+ *
+ * Expo Go Google OAuth therefore needs a hostname redirect (npx expo start --tunnel).
+ * Dev/standalone builds use the tunetalez scheme.
  */
 export function getOAuthRedirectTo() {
-  const redirectTo = makeRedirectUri({ preferLocalhost: true });
+  const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+  const redirectTo = makeRedirectUri({
+    scheme: isExpoGo ? undefined : 'tunetalez',
+    path: 'auth/callback',
+  });
   console.log('[auth] redirectTo', redirectTo);
+  if (
+    isExpoGo &&
+    (/^exp:\/\/\d+\.\d+\.\d+\.\d+/.test(redirectTo) || redirectTo.includes('localhost'))
+  ) {
+    console.warn(
+      '[auth] Expo Go OAuth needs a tunnel hostname. Run: npx expo start --tunnel --port 8081',
+    );
+  }
   return redirectTo;
 }
 
@@ -55,7 +70,6 @@ export async function signInWithGoogle() {
   if (error) throw error;
   if (!data.url) throw new Error('No OAuth URL returned');
 
-  // Confirm Supabase kept our redirect_to (not site_url fallback).
   try {
     const oauthUrl = new URL(data.url);
     console.log('[auth] oauth redirect_to', oauthUrl.searchParams.get('redirect_to'));

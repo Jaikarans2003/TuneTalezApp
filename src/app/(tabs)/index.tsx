@@ -24,15 +24,21 @@ export default function HomeScreen() {
   useEffect(() => {
     let mounted = true;
     void (async () => {
-      const { data, error: qError } = await supabase
-        .from('series')
-        .select('*')
-        .eq('is_published', true)
-        .order('sort_order', { ascending: true });
-      if (!mounted) return;
-      if (qError) setError(qError.message);
-      else setSeries(data ?? []);
-      setLoading(false);
+      try {
+        const { data, error: qError } = await supabase
+          .from('series')
+          .select('*')
+          .eq('is_published', true)
+          .order('sort_order', { ascending: true });
+        if (!mounted) return;
+        if (qError) setError(qError.message);
+        else setSeries(data ?? []);
+      } catch (e) {
+        if (!mounted) return;
+        setError(e instanceof Error ? e.message : 'Failed to load series');
+      } finally {
+        if (mounted) setLoading(false);
+      }
     })();
     return () => {
       mounted = false;
