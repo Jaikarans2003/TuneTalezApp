@@ -40,7 +40,7 @@ Expo Go has `getRandomValues` (via `react-native-get-random-values`) but **not**
 
 | Concern | Mitigation |
 | --- | --- |
-| Redirect host for Expo Go Google | Start Metro with **tunnel**: `npx expo start --tunnel --port 8081`. Redirect becomes a hostname (`*.exp.direct`), which passes GoTrue and Expo Go can fetch the bundle. |
+| Redirect host for Expo Go Google | Prefer `npx expo start --tunnel --port 8081` (`*.exp.direct`). If Expo’s ngrok fails (“remote gone away”), use Metro + `cloudflared tunnel --url http://127.0.0.1:8081` and open the `https://*.trycloudflare.com` URL in Expo Go so `hostUri` is a hostname. |
 | Redirect builder | `makeRedirectUri({ path: 'auth/callback' })` — **no** `preferLocalhost` for physical-device Expo Go. Dev/standalone builds may use scheme `tunetalez`. |
 | Deep link target | Keep `src/app/auth/callback.tsx` — exchange `code` via `exchangeCodeForSession`, then `router.replace` to Profile/Home. Register `auth/callback` in root Stack. |
 | Allowlist (`config.toml`) | Staging includes `exp://**`, `tunetalez://**`, `http://localhost:8081/**`, `https://staging.tunetalez.com/**`. Push only after `supabase config diff`. |

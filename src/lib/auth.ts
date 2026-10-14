@@ -28,10 +28,12 @@ export function getOAuthRedirectTo() {
   console.log('[auth] redirectTo', redirectTo);
   if (
     isExpoGo &&
-    (/^exp:\/\/\d+\.\d+\.\d+\.\d+/.test(redirectTo) || redirectTo.includes('localhost'))
+    (/^exp:\/\/\d+\.\d+\.\d+\.\d+/.test(redirectTo) ||
+      /^exps:\/\/\d+\.\d+\.\d+\.\d+/.test(redirectTo) ||
+      redirectTo.includes('localhost'))
   ) {
     console.warn(
-      '[auth] Expo Go OAuth needs a tunnel hostname. Run: npx expo start --tunnel --port 8081',
+      '[auth] Expo Go OAuth needs a tunnel hostname (expo --tunnel or cloudflared to Metro). LAN IP / localhost will fail.',
     );
   }
   return redirectTo;
