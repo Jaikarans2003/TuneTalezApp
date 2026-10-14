@@ -143,7 +143,9 @@ Before each Step 0–5 block: write a **3–5 line mini-plan**, then execute onl
 
 ---
 
-## Step 4 — Connect app to data
+## Step 4 — Connect app to data ✅
+
+**Evidence:** `fe7ec67` — `feat: wire Home, auth, and My List for Phase 1` (supabase client, Google/email auth, Home/series/My List/Profile).
 
 **Mini-plan:** Official Expo client. Wire UI to data. Confirm graphify CLI then update graph.
 
@@ -155,7 +157,9 @@ Before each Step 0–5 block: write a **3–5 line mini-plan**, then execute onl
 
 ---
 
-## Step 5 — Staging deploy + CI + docs + payments decisions
+## Step 5 — Staging deploy + CI + docs + payments decisions ✅
+
+**Evidence:** `f8dcfa6` CI workflow + `de8774a` payments docs; Staging Actions green; `https://staging.tunetalez.com` → 200.
 
 **Mini-plan:** Deploy staging web. CI with npm ci + .nvmrc + link-before-push. SETUP Before launch + payments.mdc Phase 3 docs. No payment code.
 
@@ -186,7 +190,9 @@ Before each Step 0–5 block: write a **3–5 line mini-plan**, then execute onl
 7. Commits including `docs: record TuneTalez payments structure for Phase 3`.
 8. Typecheck + lint. No push until GitHub URL.
 
-## Step 6 — Connect GitHub (blocked on you)
+## Step 6 — Connect GitHub ✅
+
+**Evidence:** `origin` → `https://github.com/Jaikarans2003/TuneTalezApp.git`; `staging` tracks `origin/staging` and pushes succeed.
 
 1. You paste the repo URL.
 2. `git remote add origin <url>` → `git push -u origin staging`.

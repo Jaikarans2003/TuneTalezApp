@@ -39,8 +39,11 @@ Phase 1 talks to staging Supabase and staging R2/Pages only. No payment SDKs, ta
 
 ## Roadmap
 
-1. Foundation — Supabase schema + RLS, Google + email/password auth, Home / Series / My List / Profile, staging Pages + R2 posters
-2. Content & Video — episode player, free/paywall logic, Stream (or equivalent) upload pipeline
-3. Payments — coin wallet + purchases per `payments.mdc` (Razorpay web, Apple IAP iOS, Play Billing Android)
-4. Polish & Store Prep — EAS builds, app store assets, QA across web/iOS/Android
-5. Launch — Store submission, production Pages go-live, monitor usage
+Phases and screen scope live in [`docs/PRD.md`](docs/PRD.md) §6 (source of truth). Summary:
+
+1. **Foundation** (done) — tabs, basic Home rails, Series page, Google + email/password, My List, staging web + CI
+2. **Watch** — player, progress, For You, lock UI (no purchase), web series player
+3. **Monetize** — coin wallet + purchases per `payments.mdc`
+4. **Discover & profile** — onboarding, search, full Home, settings, delete account
+5. **Admin** — admin panel
+6. **Launch** — `docs/PRODUCTION_CHECKLIST.md`

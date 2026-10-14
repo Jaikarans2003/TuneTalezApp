@@ -1,22 +1,24 @@
 # TuneTalez — Phase 1 task board
 
-Plain-English progress for builders. Code details live in the Phase 1 plan.
+Plain-English progress for builders. Code details live in the Phase 1 plan. Product scope: [`docs/PRD.md`](docs/PRD.md) §6.
 
-## Done
+## Phase 1 — Done
 
 - [x] **Step 0 — Safety** — Git repo on `staging`, secrets ignored, staging Supabase + Cloudflare access checked, OnStar Cursor rules replaced with TuneTalez, this task board created.
 - [x] **Step 1 — App skeleton** — Expo + Expo Router TypeScript app, 5 tabs + stack screens, env gate, LF line endings (no payment code).
 - [x] **Step 2 — Staging database** — Schema, RLS, grants, seed (6×10), types generated. Auth switched to Google OR email + password (no OTP).
 - [x] **Step 3 — Cloudflare media & hosting** — R2 buckets + CORS + custom domains, 6 staging posters (curl 200), Pages projects + `staging.tunetalez.com` (old CDN / `okvevo-nia-releases` untouched).
-
-## Up next
-
-- [x] **Step 4 — Wire the app** — Home, series, Google / email+password sign-in, My List.
+- [x] **Step 4 — Wire the app** — Home, series, Google / email+password sign-in, My List (`fe7ec67`).
 - [x] **Step 5 — Deploy + CI + docs** — Staging Pages deploy workflow, GitHub `staging` env secrets, SETUP Before launch, payments decisions in `payments.mdc`.
 - [x] **Step 6 — GitHub** — Remote on `staging`; push after each commit.
 
-## Phase 1 done when
+## Phase 1 DONE criteria (evidence)
 
-1. `https://staging.tunetalez.com` shows Home with 6 series and posters.
-2. Google or email+password sign-in → save to My List → sign out works.
-3. Typecheck and lint pass; commits are on `staging` (push after repo URL).
+1. **Staging Home + posters** — `curl -I https://staging.tunetalez.com` → 200; `curl -I https://media-staging.tunetalez.com/posters/midnight-train.jpg` → 200 (image/jpeg); seed has 6 published series.
+2. **Auth → My List → sign out** — Wired in `fe7ec67` (`feat: wire Home, auth, and My List for Phase 1`); Google + email/password flows present in app.
+3. **Typecheck + lint** — `npm run typecheck` and `npm run lint` both exit 0 locally (2026-10-15).
+4. **Commits on staging + CI** — Branch `staging` tracks `origin/staging`; latest Staging workflow green: [run 38600915006](https://github.com/Jaikarans2003/TuneTalezApp/actions/runs/38600915006) (`dd59d95`).
+
+## Up next
+
+Phase 2 — Watch (PRD §6): player, progress, For You, lock UI (no purchase yet).

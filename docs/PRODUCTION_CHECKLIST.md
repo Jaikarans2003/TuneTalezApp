@@ -21,6 +21,9 @@
 - [ ] Cursor: add the DNS records in Cloudflare, connect SMTP to Supabase production
 - [ ] Cursor: turn ON email confirmation + build forgot password (production only)
 
+## Auth redirects (manual + Cursor)
+- [ ] Production auth redirect allowlist = exact URLs only (`https://tunetalez.com/**`, `tunetalez://**`). Never `exp://`, `exps://`, `*.exp.direct` or `*.trycloudflare.com`.
+
 ## Website & legal
 - [ ] Manual: confirm what tunetalez.com / www currently serve before Cursor points them to production
 - [ ] Manual: real Privacy Policy + Terms text; Cursor publishes at tunetalez.com/privacy and /terms

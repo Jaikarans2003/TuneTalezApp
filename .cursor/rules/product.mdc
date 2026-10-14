@@ -1,0 +1,11 @@
+---
+description: PRD and wireframes govern product scope; build only the current phase
+globs: "**/*"
+alwaysApply: true
+---
+
+# Product scope
+
+- [`docs/PRD.md`](docs/PRD.md) is the source of truth for scope and flows. [`docs/wireframes/TuneTalez_Wireframes.pdf`](docs/wireframes/TuneTalez_Wireframes.pdf) is the layout reference. On conflicts, the PRD wins (PRD §7).
+- Build only what is in the current phase (PRD §6). Anything else → ask before building.
+- When scope changes, update the PRD in the same commit.
