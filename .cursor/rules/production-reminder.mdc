@@ -1,0 +1,9 @@
+---
+description: Production go-live reminder
+alwaysApply: true
+---
+When the user mentions production, launch, go live, release, app store, or tunetalez.com:
+1. Before any production action, open docs/PRODUCTION_CHECKLIST.md, list the unchecked items in plain language, and mark which ones the user must do manually.
+2. Do not run any production step that depends on an unchecked manual item. Ask first.
+3. When the user confirms an item is done, tick it in the file and commit.
+4. Whenever new production-only work comes up during development, add it to the checklist.

@@ -38,8 +38,4 @@ Phase 1 Step 4 should prefer email/password + browser OAuth Google so Expo Go QA
 
 ## Before launch
 
-- **Email confirmation + forgot password** — needs custom SMTP (Resend/Postmark); set `enable_confirmations = true` on production.
-- **Sign in with Apple on iOS** — Apple App Store guideline 4.8 when offering other third-party logins.
-- **Google brand verification + Supabase custom auth domain** — so the consent screen shows “TuneTalez”, not `*.supabase.co`.
-- **Real privacy policy** live at `https://tunetalez.com/privacy` (replace the placeholder page).
-- (Filled further in Phase 1 Step 5 — prod Supabase, store accounts, payments prep.)
+See [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md).
