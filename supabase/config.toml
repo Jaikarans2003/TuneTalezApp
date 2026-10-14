@@ -164,8 +164,11 @@ site_url = "https://staging.tunetalez.com"
 additional_redirect_urls = [
   "https://staging.tunetalez.com/**",
   "http://localhost:8081/**",
+  "https://*.trycloudflare.com/**",
+  "https://*.exp.direct/**",
   "tunetalez://**",
-  "exp://**"
+  "exp://**",
+  "exps://**"
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
