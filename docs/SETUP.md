@@ -45,6 +45,14 @@ npx expo start --tunnel --port 8081
 
 Full failure modes + mitigations (LAN IP → staging site, localhost → “Failed to download remote update”, missing `/auth/callback` → Unmatched Route, WebCrypto/PKCE): see Cursor rule [`.cursor/rules/expo-go-google-oauth.mdc`](../.cursor/rules/expo-go-google-oauth.mdc).
 
+## Mux video (Phase 2 staging)
+
+- Staging uses **Mux Free** (≤ **10** assets). Reuse playback IDs across seed episodes where possible; `video_quality: basic` on upload script.
+- **Edge Function** `issue-playback` mints signed playback JWTs server-side. In [`supabase/config.toml`](../supabase/config.toml): `[functions.issue-playback] verify_jwt = false` — auth is enforced in code via `@supabase/server` `withSupabase({ auth: ['user', 'publishable'] })` (signed-in user JWT or publishable key for free episodes).
+- Set these **Supabase Edge secrets** on staging only (names only — never commit values): `MUX_SIGNING_KEY_ID`, `MUX_SIGNING_PRIVATE_KEY` (base64 private key as Mux provides once).
+- Local one-time upload: `MUX_TOKEN_ID`, `MUX_TOKEN_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` → run `node scripts/upload-staging-videos.mjs` (see script header). Do not put Mux signing keys or API secrets in `EXPO_PUBLIC_*`.
+- Native playback: `expo-video` + signed HLS URL. Web: `@mux/mux-player-react` with React prop `tokens={{ playback, thumbnail, storyboard }}` (not HTML `playback-token`).
+
 ## Before launch
 
 Do these before production go-live (also tracked in [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)):

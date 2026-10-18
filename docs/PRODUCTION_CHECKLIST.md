@@ -37,6 +37,11 @@
 - [ ] Manual + Cursor: Sign in with Apple (required on iOS because Google login exists)
 - [ ] Manual: test on a real iPhone and Android before submitting
 
+## Mux video (Phase 2 → launch)
+- [ ] Create **Mux production** environment (TuneTalez-only; separate from staging Free tier)
+- [ ] Production Mux **signing key** → Supabase production Edge secrets `MUX_SIGNING_KEY_ID`, `MUX_SIGNING_PRIVATE_KEY`
+- [ ] Upgrade Mux to **Pay-as-you-go** before launch traffic (staging stays on Free ≤10 assets)
+
 ## Payments (Phase 3, see payments.mdc)
 - [ ] Manual: Razorpay business account + KYC
 - [ ] Manual: enroll in Apple Small Business Program + Google Play 15% tier
