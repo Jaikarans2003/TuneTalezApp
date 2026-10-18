@@ -13,18 +13,18 @@ function json(body: unknown, status = 200): Response {
   })
 }
 
-async function mintMuxJwt(
-  playbackId: string,
-  aud: string,
+/** Cloudflare Stream signed token — RS256; header kid; claims sub/kid/exp (≤1h). */
+async function mintStreamToken(
+  videoUid: string,
   keyId: string,
-  privateKeyPem: string,
+  jwkBase64: string,
 ): Promise<string> {
-  const key = await jose.importPKCS8(privateKeyPem, 'RS256')
-  return new jose.SignJWT({})
+  const jwk = JSON.parse(atob(jwkBase64)) as jose.JWK
+  const key = await jose.importJWK(jwk, 'RS256')
+  const exp = Math.floor(Date.now() / 1000) + 3600
+  return new jose.SignJWT({ kid: keyId, exp })
     .setProtectedHeader({ alg: 'RS256', kid: keyId })
-    .setSubject(playbackId)
-    .setAudience(aud)
-    .setExpirationTime('1h')
+    .setSubject(videoUid)
     .sign(key)
 }
 
@@ -51,7 +51,7 @@ export default {
 
     const { data: episode, error: loadError } = await ctx.supabase
       .from('episodes')
-      .select('is_free, mux_playback_id')
+      .select('is_free, video_id')
       .eq('id', episodeId)
       .maybeSingle()
 
@@ -64,39 +64,21 @@ export default {
     if (!episode.is_free) {
       return json({ error: 'Episode is locked' }, 403)
     }
-    if (!episode.mux_playback_id) {
+    if (!episode.video_id) {
       return json({ error: 'Playback not configured for this episode' }, 404)
     }
 
-    const keyId = Deno.env.get('MUX_SIGNING_KEY_ID')
-    const privateKeyB64 = Deno.env.get('MUX_SIGNING_PRIVATE_KEY')
-    if (!keyId || !privateKeyB64) {
-      return json({ error: 'Mux signing is not configured' }, 503)
+    const keyId = Deno.env.get('STREAM_SIGNING_KEY_ID')
+    const jwkB64 = Deno.env.get('STREAM_SIGNING_JWK')
+    const customerCode = Deno.env.get('STREAM_CUSTOMER_CODE')
+    if (!keyId || !jwkB64 || !customerCode) {
+      return json({ error: 'Stream signing is not configured' }, 503)
     }
 
-    let privateKeyPem: string
     try {
-      privateKeyPem = atob(privateKeyB64)
-    } catch {
-      return json({ error: 'Invalid MUX_SIGNING_PRIVATE_KEY' }, 503)
-    }
-
-    const playbackId = episode.mux_playback_id
-
-    try {
-      const [playback, thumbnail, storyboard] = await Promise.all([
-        mintMuxJwt(playbackId, 'v', keyId, privateKeyPem),
-        mintMuxJwt(playbackId, 't', keyId, privateKeyPem),
-        mintMuxJwt(playbackId, 's', keyId, privateKeyPem),
-      ])
-
-      const playbackUrl = `https://stream.mux.com/${playbackId}.m3u8?token=${playback}`
-
-      return json({
-        playbackId,
-        tokens: { playback, thumbnail, storyboard },
-        playbackUrl,
-      })
+      const token = await mintStreamToken(episode.video_id, keyId, jwkB64)
+      const hlsUrl = `https://customer-${customerCode}.cloudflarestream.com/${token}/manifest/video.m3u8`
+      return json({ hlsUrl })
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to mint playback token'
       return json({ error: message }, 500)

@@ -15,7 +15,7 @@ import {
 import { EpisodePlayer } from '@/components/player/EpisodePlayer';
 import { UnlockSheet } from '@/components/player/UnlockSheet';
 import { colors } from '@/constants/colors';
-import { issuePlayback, refreshPlaybackTokens, type PlaybackSession } from '@/lib/playback';
+import { issuePlayback, refreshPlayback, type PlaybackSession } from '@/lib/playback';
 import { watchEpisodeHref } from '@/lib/routes';
 import { mediaUrl, supabase } from '@/lib/supabase';
 import { getContinueEpisodeForSeries } from '@/lib/watchHistory';
@@ -218,9 +218,9 @@ export default function SeriesScreen() {
         <View style={styles.webPlayerCol}>
           {webSession && webEpisode ? (
             <EpisodePlayer
-              key={webSession.playbackUrl}
+              key={webSession.hlsUrl}
               session={webSession}
-              onError={() => void refreshPlaybackTokens(webEpisode.id).then(setWebSession)}
+              onError={() => void refreshPlayback(webEpisode.id).then(setWebSession)}
             />
           ) : (
             <View style={styles.webPlayerPlaceholder}>

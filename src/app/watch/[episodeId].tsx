@@ -15,7 +15,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import { EpisodePlayer, usePreloadPlaybackUrls } from '@/components/player/EpisodePlayer'
 import { UnlockSheet } from '@/components/player/UnlockSheet'
 import { colors } from '@/constants/colors'
-import { issuePlayback, refreshPlaybackTokens, type PlaybackSession } from '@/lib/playback'
+import { issuePlayback, refreshPlayback, type PlaybackSession } from '@/lib/playback'
 import { watchEpisodeHref } from '@/lib/routes'
 import { supabase } from '@/lib/supabase'
 import { upsertWatchProgress } from '@/lib/watchHistory'
@@ -142,7 +142,7 @@ export default function WatchScreen() {
   const refreshTokens = useCallback(async () => {
     if (!currentId) return
     try {
-      const next = await refreshPlaybackTokens(currentId)
+      const next = await refreshPlayback(currentId)
       setSession(next)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Playback token refresh failed')
@@ -192,7 +192,7 @@ export default function WatchScreen() {
       <View style={styles.container}>
         {session ? (
           <EpisodePlayer
-            key={session.playbackUrl}
+            key={session.hlsUrl}
             session={session}
             startPosition={startPosition}
             paused={paused}

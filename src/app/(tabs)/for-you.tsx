@@ -14,7 +14,7 @@ import {
 
 import { EpisodePlayer } from '@/components/player/EpisodePlayer';
 import { colors } from '@/constants/colors';
-import { issuePlayback, refreshPlaybackTokens, type PlaybackSession } from '@/lib/playback';
+import { issuePlayback, refreshPlayback, type PlaybackSession } from '@/lib/playback';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import type { Database } from '@/types/database';
@@ -47,7 +47,7 @@ export default function ForYouScreen() {
       setSessions((prev) => ({ ...prev, [episodeId]: session }));
     } catch {
       loadingRef.current.delete(episodeId);
-      // Mux not wired yet — feed still shows metadata
+      // Stream not wired yet — feed still shows metadata
     }
   }, []);
 
@@ -159,10 +159,10 @@ export default function ForYouScreen() {
           <View style={[styles.page, { height: WINDOW_HEIGHT }]}>
             {isActive && session ? (
               <EpisodePlayer
-                key={session.playbackUrl}
+                key={session.hlsUrl}
                 session={session}
                 onError={() =>
-                  void refreshPlaybackTokens(item.episode.id).then((s) =>
+                  void refreshPlayback(item.episode.id).then((s) =>
                     setSessions((prev) => ({ ...prev, [item.episode.id]: s })),
                   )
                 }

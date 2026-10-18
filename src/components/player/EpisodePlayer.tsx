@@ -7,7 +7,7 @@ import type { EpisodePlayerProps } from '@/components/player/EpisodePlayer.types
 export type { EpisodePlayerProps } from '@/components/player/EpisodePlayer.types'
 
 /**
- * Native HLS via expo-video. Remount with key={session.playbackUrl} when tokens refresh.
+ * Native HLS via expo-video. Remount with key={session.hlsUrl} when the signed URL refreshes.
  * Player mutations stay in the useVideoPlayer setup callback (expo-video API).
  */
 export function EpisodePlayer({
@@ -19,13 +19,13 @@ export function EpisodePlayer({
   onEnded,
   onError,
 }: EpisodePlayerProps) {
-  const { playbackUrl } = session
+  const { hlsUrl } = session
   const callbacks = useRef({ onProgress, onEnded, onError, onTogglePause })
   useEffect(() => {
     callbacks.current = { onProgress, onEnded, onError, onTogglePause }
   }, [onProgress, onEnded, onError, onTogglePause])
 
-  const player = useVideoPlayer({ uri: playbackUrl, contentType: 'hls' }, (p) => {
+  const player = useVideoPlayer({ uri: hlsUrl, contentType: 'hls' }, (p) => {
     p.loop = false
     p.timeUpdateEventInterval = 1
     if (startPosition > 0) p.currentTime = startPosition

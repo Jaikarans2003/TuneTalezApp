@@ -1,6 +1,6 @@
 ---
 name: TuneTalez Phase 2
-overview: "Phase 2 Watch: Mux signed HLS, issue-playback Edge Function (verify_jwt=false; @supabase/server auth user|publishable), expo-video on native + @mux/mux-player-react on web, watch_history / Continue / History / For You / lock UI / web split player. First Build action: save as docs/PHASE2_PLAN.md."
+overview: "Phase 2 Watch: Cloudflare Stream signed HLS, issue-playback Edge Function (verify_jwt=false; @supabase/server auth user|publishable), expo-video on native + hls.js on web, watch_history / Continue / History / For You / lock UI / web split player. First Build action: save as docs/PHASE2_PLAN.md."
 todos:
   - id: step-0-persist
     content: Save plan as docs/PHASE2_PLAN.md + TASKS Phase 2 section
@@ -30,6 +30,8 @@ isProject: false
 
 ## Approved amendments (locked in)
 
+0. **Video host = Cloudflare Stream (decision change):** Replace Mux. Azonova shared Cloudflare account; single vendor/bill accepted. Provider-agnostic DB column `episodes.video_id` (renamed from `mux_playback_id`). App receives only `{ hlsUrl }`. Provider details live only in `issue-playback` + upload script. Web uses **hls.js** (`Hls.isSupported()` first; native HLS Safari fallback). Stream videos must have `meta.product = "tunetalez"`; never touch others. Signing: mint JWT yourself (RS256, header `kid`, claims `sub`/`kid`/`exp` ≤ 1h) → `https://customer-<CODE>.cloudflarestream.com/<TOKEN>/manifest/video.m3u8`.
+
 1. **`issue-playback` Edge Function auth (new publishable keys):** set `verify_jwt = false` in [`supabase/config.toml`](supabase/config.toml); authorize in code with `@supabase/server` `withSupabase({ auth: ['user', 'publishable'] })` so a **signed-in user JWT** or the **default publishable key** (guests playing free episodes) is accepted. Sources: [Migrating to new API keys](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys), [Securing Edge Functions](https://supabase.com/docs/guides/functions/auth), [Function configuration](https://supabase.com/docs/guides/functions/function-configuration), [Authorization headers](https://supabase.com/docs/guides/functions/auth-headers). Exact syntax (confirm again at implement time via Supabase docs MCP):
 
 ```toml
@@ -58,27 +60,25 @@ export default {
 
 ## Approved decisions (locked in)
 
-1. **Video host = Mux** (not Cloudflare Stream, not DIY HLS on R2). Rationale and cost math in Decision A below.
-2. **Playback access:** all Mux assets use `playback_policies: ["signed"]`. Client never stores signing keys. Only `issue-playback` mints short-lived JWTs after entitlement (`episodes.is_free` in Phase 2; unlocks in Phase 3).
-3. **Player:** native = `expo-video` (Expo Go OK); web = `@mux/mux-player-react` ≥ 3.8 via `.web.tsx`. Preload next 2 on native via detached `VideoPlayer`s.
+1. **Video host = Cloudflare Stream** (Azonova account; not Mux, not DIY HLS on R2). Rationale in Decision A.
+2. **Playback access:** Stream videos use `requireSignedURLs: true` + `meta.product=tunetalez`. Client never stores signing keys. Only `issue-playback` mints short-lived JWTs after entitlement (`episodes.is_free` in Phase 2; unlocks in Phase 3).
+3. **Player:** native = `expo-video` (Expo Go OK); web = `hls.js` via `.web.tsx` (`Hls.isSupported()` then native HLS fallback). Preload next 2 on native via detached `VideoPlayer`s.
 4. **Progress:** upsert `watch_history` every 5 s; Continue watching + History; add **DELETE** RLS. Likes/share UI-only (Phase 4 for persistence).
 5. **Free count:** seed `is_free = (episode_number <= 4)` (PRD §11). Unlock cost display constant **60** coins (no DB column until Phase 3).
-6. **Staging video content:** ≤10 Mux Free assets; reuse `mux_playback_id` across 6×10 seed episodes. Real drama library later (PRD §11 Q6 / Admin).
-7. **Cloudflare:** posters stay on `tunetalez-media-staging` only. **Do not enable Cloudflare Stream** on shared Azonova account. No new non-`tunetalez-*` CF resources.
+6. **Staging video content:** reuse Stream UIDs across 6×10 seed episodes where helpful; tag `meta.product=tunetalez`. Real drama library later (PRD §11 Q6 / Admin).
+7. **Cloudflare:** posters stay on `tunetalez-media-staging`. Stream allowed only for `meta.product=tunetalez` videos. No new non-`tunetalez-*` CF resources besides Stream videos so tagged.
 8. After you click **Build**, **Step 0** writes this plan to [`docs/PHASE2_PLAN.md`](docs/PHASE2_PLAN.md) before any other work.
 
 ## Decision A — Video delivery comparison
 
-| | **Mux (chosen)** | **Cloudflare Stream** | **Self-encoded HLS on R2** |
+| | **Cloudflare Stream (chosen)** | **Mux** | **Self-encoded HLS on R2** |
 |---|---|---|---|
-| Setup | Upload → auto ABR HLS/DASH; signed playback IDs + JWT | Upload → auto ABR; `requireSignedURLs` + signing key | DIY ffmpeg ladder; Worker/HMAC auth |
-| Cost @ ~100 eps × 2 min, ~10k views/mo | Storage ≈ 200 × $0.003 = **~$0.60**; delivery under **100k free min/mo** → **~$0** (PAYG); staging on **Free ≤10 assets** | Storage **$5 / 1k min**; delivery **$1 / 1k min** → **~$25/mo** | R2 cheap; eng + ABR ops dominate |
-| Signed playback | First-class `signed` + JWT | First-class signed tokens | Presigned URLs per-object; **not** custom-domain; bad fit for HLS |
-| Product isolation | Separate Mux env (TuneTalez-only) | Stream is **account-wide** on shared Azonova CF | Fits `tunetalez-*` R2 naming |
+| Setup | Upload → auto ABR; `requireSignedURLs` + signing key JWT | Upload → signed playback IDs + JWT | DIY ffmpeg ladder; Worker/HMAC |
+| Billing | Same Azonova Cloudflare invoice as R2/Pages (accepted) | Separate Mux account/bill | R2 cheap; eng + ABR ops dominate |
+| Product isolation | Tag videos `meta.product=tunetalez`; never touch others | Separate Mux env | Fits `tunetalez-*` R2 naming |
+| Signed playback | First-class signed tokens in path | First-class `signed` + query token | Presigned URLs; bad fit for HLS |
 
-Sources: [Mux pricing](https://www.mux.com/pricing), [Mux secure playback](https://www.mux.com/docs/guides/secure-video-playback), [Cloudflare Stream pricing](https://developers.cloudflare.com/stream/pricing/), [Stream signed URLs](https://developers.cloudflare.com/stream/viewing-videos/securing-your-stream/), [R2 presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/).
-
-**Chosen: Mux.** Avoids Stream on shared CF account; signed VOD is industry default; staging Free plan is enough for ≤10 sample assets.
+**Chosen: Cloudflare Stream.** Single vendor/bill with existing Azonova Cloudflare (R2/Pages). Isolate TuneTalez assets via `meta.product=tunetalez` and `cloudflare-safety.mdc`. Client stays provider-agnostic (`video_id` + `hlsUrl` only).
 
 ## Decision B — Locked episodes not playable by URL
 
@@ -87,37 +87,37 @@ sequenceDiagram
   participant App
   participant Edge as issue_playback
   participant DB as Supabase
-  participant Mux
+  participant Stream as Cloudflare_Stream
 
   App->>Edge: episode_id plus user JWT or publishable apikey
   Edge->>Edge: withSupabase auth user or publishable
-  Edge->>DB: load episode is_free mux_playback_id
+  Edge->>DB: load episode is_free video_id
   alt not entitled locked Phase2
     Edge-->>App: 403
   else entitled
-    Edge->>Edge: RS256 JWTs sub playbackId aud v/t/s
-    Edge-->>App: playbackId tokens playbackUrl
-    App->>Mux: stream.mux.com/playbackId.m3u8?token=playbackJwt
+    Edge->>Edge: RS256 JWT sub videoUid kid exp
+    Edge-->>App: hlsUrl
+    App->>Stream: customer-CODE.cloudflarestream.com/TOKEN/manifest/video.m3u8
   end
 ```
 
-- Store **`mux_playback_id`** on `episodes` (not a playable URL).
+- Store **`video_id`** on `episodes` (Stream UID today; not a playable URL).
 - Entitlement Phase 2: `is_free === true` (guests via publishable key OK). Locked → **403**.
-- Playback URL: `https://stream.mux.com/{playbackId}.m3u8?token={jwt}`.
-- JWTs: **RS256**; same `sub` = playback ID, `kid` = signing key ID; mint three with `aud` = `"v"` (playback), `"t"` (thumbnail), `"s"` (storyboard); private key base64 as Mux returns; short TTL (~1h). On expiry failure → re-call `issue-playback` and refresh all three.
-- Never put Mux signing private key or API secret in `EXPO_PUBLIC_*`.
+- Playback URL: `https://customer-<CODE>.cloudflarestream.com/<TOKEN>/manifest/video.m3u8`.
+- JWT: **RS256**; header `kid`; claims `sub` = video UID, `kid`, `exp` ≤ 1h. Signing key from `POST /stream/keys` (JWK base64 in Edge secret). On expiry → re-call `issue-playback`.
+- Never put Stream signing private key / JWK in `EXPO_PUBLIC_*` or git.
 
 ## Decision C — Player
 
 | Topic | Answer |
 |---|---|
 | Native (iOS/Android) | `expo-video` — **Included in Expo Go**. Source: [expo-video docs](https://docs.expo.dev/versions/latest/sdk/video/). |
-| Web | `@mux/mux-player-react` ≥ 3.8 in e.g. `EpisodePlayer.web.tsx`; `tokens={{ playback, thumbnail, storyboard }}`; native `EpisodePlayer.tsx` keeps expo-video and uses only `playback`. |
+| Web | `hls.js` in `EpisodePlayer.web.tsx` (`Hls.isSupported()` then native HLS); native `EpisodePlayer.tsx` keeps expo-video with `hlsUrl`. |
 | Web autoplay | **Muted** start + **tap-to-unmute** (Chrome policy). |
 | Dev build | Not required for Phase 2 (no background/PiP plugin features). |
-| Native HLS | Mux signed `.m3u8?token=…`; `contentType: 'hls'` if needed. |
+| Native HLS | Stream signed `hlsUrl`; `contentType: 'hls'` if needed. |
 | Preload next 2 (native) | Up to 3 `VideoPlayer`s (current + next + next+1); buffer without `VideoView`; release off-window; cap on Android. |
-| Token refresh | On playback error from expired JWT, re-fetch all three tokens from `issue-playback` and replace source / `tokens`. |
+| Token refresh | On playback error from expired JWT, re-fetch `hlsUrl` from `issue-playback` and remount player. |
 
 ## Decision D — Data / RLS
 

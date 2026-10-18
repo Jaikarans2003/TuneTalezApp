@@ -1,15 +1,8 @@
 import { supabase } from '@/lib/supabase'
 
-export type PlaybackTokens = {
-  playback: string
-  thumbnail: string
-  storyboard: string
-}
-
+/** Provider-agnostic session — client only needs a signed HLS URL. */
 export type PlaybackSession = {
-  playbackId: string
-  tokens: PlaybackTokens
-  playbackUrl: string
+  hlsUrl: string
 }
 
 type IssuePlaybackBody = {
@@ -23,16 +16,7 @@ type IssuePlaybackError = {
 function isPlaybackSession(value: unknown): value is PlaybackSession {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
-  const tokens = v.tokens
-  if (!tokens || typeof tokens !== 'object') return false
-  const t = tokens as Record<string, unknown>
-  return (
-    typeof v.playbackId === 'string' &&
-    typeof v.playbackUrl === 'string' &&
-    typeof t.playback === 'string' &&
-    typeof t.thumbnail === 'string' &&
-    typeof t.storyboard === 'string'
-  )
+  return typeof v.hlsUrl === 'string' && v.hlsUrl.length > 0
 }
 
 export async function issuePlayback(episodeId: string): Promise<PlaybackSession> {
@@ -44,7 +28,12 @@ export async function issuePlayback(episodeId: string): Promise<PlaybackSession>
     throw new Error(error.message)
   }
 
-  if (data && typeof data === 'object' && 'error' in data && typeof (data as IssuePlaybackError).error === 'string') {
+  if (
+    data &&
+    typeof data === 'object' &&
+    'error' in data &&
+    typeof (data as IssuePlaybackError).error === 'string'
+  ) {
     throw new Error((data as IssuePlaybackError).error)
   }
 
@@ -55,7 +44,10 @@ export async function issuePlayback(episodeId: string): Promise<PlaybackSession>
   return data
 }
 
-/** Re-fetch all three Mux JWTs after expiry or player error. */
-export async function refreshPlaybackTokens(episodeId: string): Promise<PlaybackSession> {
+/** Re-fetch a signed HLS URL after token expiry or player error. */
+export async function refreshPlayback(episodeId: string): Promise<PlaybackSession> {
   return issuePlayback(episodeId)
 }
+
+/** @deprecated use refreshPlayback */
+export const refreshPlaybackTokens = refreshPlayback

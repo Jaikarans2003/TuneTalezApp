@@ -14,6 +14,7 @@ Cloudflare account is shared by **Azonova Technologies Pvt Ltd** across separate
 - R2 buckets named `tunetalez-*`
 - Pages projects named `tunetalez-*`
 - Custom domains under `tunetalez.com`
+- **Cloudflare Stream** videos with `meta.product = "tunetalez"` (and Stream signing keys used only by TuneTalez Edge secrets)
 
 # Never touch
 
@@ -23,21 +24,20 @@ Never modify, delete, rename, or change CORS / domains / settings of anything el
 - Other zones
 - Other buckets, Pages projects, or Workers
 - Legacy `cdn.tunetalez.com` / old non-`tunetalez-*` media setup
-
-Listing other account resources **read-only** is fine (e.g. conflict checks).
+- **Stream videos that are not TuneTalez** — never modify or delete a Stream video unless `meta.product === "tunetalez"`. Listing account Stream library read-only for conflict checks is fine.
 
 # Before any create / change / delete
 
 1. List existing resources in scope.
 2. Show exactly what will change.
-3. Confirm the target name starts with `tunetalez` (or is a `tunetalez.com` DNS / custom-domain hostname).
+3. Confirm the target name starts with `tunetalez` (or is a `tunetalez.com` DNS / custom-domain hostname), **or** for Stream that `meta.product` is / will be `tunetalez`.
 4. Only then apply.
 
 # Account-wide → stop and ask
 
 Billing, members, API tokens, and other account-level settings: **stop and ask** before any change.
 
-# Phase 1 resource map
+# Phase 1–2 resource map
 
 | Resource | Name / hostname |
 | --- | --- |
@@ -45,6 +45,7 @@ Billing, members, API tokens, and other account-level settings: **stop and ask**
 | R2 prod | `tunetalez-media-prod` → `media.tunetalez.com` |
 | Pages staging | `tunetalez-web-staging` → `staging.tunetalez.com` |
 | Pages prod | `tunetalez-web` (attach apex/www later) |
+| Stream | Videos tagged `meta.product=tunetalez` only (signed playback via `issue-playback`) |
 
 # CORS
 
@@ -55,3 +56,4 @@ Billing, members, API tokens, and other account-level settings: **stop and ask**
 
 1. Prefer custom domains over `*.r2.dev`.
 2. If wrangler cannot attach a Pages custom domain, use the Cloudflare API with `CLOUDFLARE_API_TOKEN` — do not stop for missing wrangler UX.
+3. Stream API token must include **Stream:Edit** for upload/signing-key create. Hard-stop and ask if Authorization Failure / product not subscribed.

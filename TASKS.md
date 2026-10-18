@@ -23,13 +23,13 @@ Plain-English progress for builders. Code details live in the Phase 1 plan. Prod
 
 Plan: [`docs/PHASE2_PLAN.md`](docs/PHASE2_PLAN.md). Product scope: [`docs/PRD.md`](docs/PRD.md) §6.
 
-- [x] **Step 0 — Persist plan** — `docs/PHASE2_PLAN.md` + this Phase 2 section (web MuxPlayer uses `tokens={{ playback, thumbnail, storyboard }}`).
-- [x] **Step 1 — Schema + types** — `episodes.mux_playback_id`; `watch_history` delete RLS; seed free EP 1–4; regenerate types.
-- [x] **Step 2 — Mux + issue-playback** — Edge Function mints three JWTs (`aud` v/t/s); upload script ≤10 basic assets; SETUP secret names.
+- [x] **Step 0 — Persist plan** — `docs/PHASE2_PLAN.md` + this Phase 2 section.
+- [x] **Step 1 — Schema + types** — `episodes.video_id` (renamed from mux_playback_id); `watch_history` delete RLS; seed free EP 1–4; types.
+- [x] **Step 2 — Stream + issue-playback** — Edge Function mints Stream JWT → `{ hlsUrl }`; upload script (`meta.product=tunetalez`); SETUP secret names.
 - [x] **Step 3 — Player core** — expo-video native; progress every 5 s; Episodes sheet; Up next; Play/Continue on series page.
 - [x] **Step 4 — For You + Continue + History** — For You EP1 feed; Home Continue watching; My List History segment.
-- [x] **Step 5 — Lock UI + web player** — Unlock shell (60 coins, no purchase); web split series layout; `@mux/mux-player-react` with `tokens` + muted autoplay.
-- [ ] **Step 6 — Docs + verify** — SETUP + PRODUCTION_CHECKLIST Mux prod written; typecheck/lint pass; **blocked on manual Mux** (Edge secrets + upload + deploy) before Chrome/Firefox/Safari smoke.
+- [x] **Step 5 — Lock UI + web player** — Unlock shell; web split; **hls.js** (MSE first, Safari native fallback) + muted autoplay.
+- [ ] **Step 6 — Docs + verify** — SETUP + PRODUCTION_CHECKLIST Stream written; typecheck/lint pass; **HARD STOP: API token lacks Stream:Edit** — cannot create signing key / upload / smoke until token updated.
 
 ## Up next
 

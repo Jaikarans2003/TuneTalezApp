@@ -37,10 +37,11 @@
 - [ ] Manual + Cursor: Sign in with Apple (required on iOS because Google login exists)
 - [ ] Manual: test on a real iPhone and Android before submitting
 
-## Mux video (Phase 2 → launch)
-- [ ] Create **Mux production** environment (TuneTalez-only; separate from staging Free tier)
-- [ ] Production Mux **signing key** → Supabase production Edge secrets `MUX_SIGNING_KEY_ID`, `MUX_SIGNING_PRIVATE_KEY`
-- [ ] Upgrade Mux to **Pay-as-you-go** before launch traffic (staging stays on Free ≤10 assets)
+## Cloudflare Stream video (Phase 2 → launch)
+- [ ] Confirm Stream is subscribed on Azonova account; API token has **Stream:Edit**
+- [ ] Production Stream **signing key** (`POST /stream/keys`) → Supabase production Edge secrets `STREAM_SIGNING_KEY_ID`, `STREAM_SIGNING_JWK`, `STREAM_CUSTOMER_CODE` (never commit; never paste secrets in chat)
+- [ ] Size Stream **storage + minutes delivered** for launch library (~minutes stored × views); set budget alerts before go-live
+- [ ] Only upload/modify Stream videos with `meta.product=tunetalez`; never touch OkVevo / other products' videos
 
 ## Payments (Phase 3, see payments.mdc)
 - [ ] Manual: Razorpay business account + KYC

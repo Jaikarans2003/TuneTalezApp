@@ -45,13 +45,14 @@ npx expo start --tunnel --port 8081
 
 Full failure modes + mitigations (LAN IP → staging site, localhost → “Failed to download remote update”, missing `/auth/callback` → Unmatched Route, WebCrypto/PKCE): see Cursor rule [`.cursor/rules/expo-go-google-oauth.mdc`](../.cursor/rules/expo-go-google-oauth.mdc).
 
-## Mux video (Phase 2 staging)
+## Cloudflare Stream video (Phase 2 staging)
 
-- Staging uses **Mux Free** (≤ **10** assets). Reuse playback IDs across seed episodes where possible; `video_quality: basic` on upload script.
-- **Edge Function** `issue-playback` mints signed playback JWTs server-side. In [`supabase/config.toml`](../supabase/config.toml): `[functions.issue-playback] verify_jwt = false` — auth is enforced in code via `@supabase/server` `withSupabase({ auth: ['user', 'publishable'] })` (signed-in user JWT or publishable key for free episodes).
-- Set these **Supabase Edge secrets** on staging only (names only — never commit values): `MUX_SIGNING_KEY_ID`, `MUX_SIGNING_PRIVATE_KEY` (base64 private key as Mux provides once).
-- Local one-time upload: `MUX_TOKEN_ID`, `MUX_TOKEN_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` → run `node scripts/upload-staging-videos.mjs` (see script header). Do not put Mux signing keys or API secrets in `EXPO_PUBLIC_*`.
-- Native playback: `expo-video` + signed HLS URL. Web: `@mux/mux-player-react` with React prop `tokens={{ playback, thumbnail, storyboard }}` (not HTML `playback-token`).
+- Video host = **Cloudflare Stream** on the shared Azonova account. Only touch videos with `meta.product = "tunetalez"` (see `cloudflare-safety.mdc`). Posters stay on R2.
+- DB column `episodes.video_id` stores the Stream UID (provider-agnostic). The app only receives a signed `hlsUrl` from `issue-playback`.
+- **Edge Function** `issue-playback`: `[functions.issue-playback] verify_jwt = false` in [`supabase/config.toml`](../supabase/config.toml); auth via `@supabase/server` `withSupabase({ auth: ['user', 'publishable'] })`. Mints a Stream JWT (RS256; `sub` = video UID; `kid` + `exp` ≤ 1h) and returns `{ hlsUrl: https://customer-<CODE>.cloudflarestream.com/<TOKEN>/manifest/video.m3u8 }`.
+- **Edge secrets** (names only — never commit values): `STREAM_SIGNING_KEY_ID`, `STREAM_SIGNING_JWK` (base64 JWK from `POST /accounts/.../stream/keys`), `STREAM_CUSTOMER_CODE` (subdomain code from `playback.hls`).
+- Local upload: `CLOUDFLARE_API_TOKEN` (needs **Stream:Edit**), `CLOUDFLARE_ACCOUNT_ID`, `SUPABASE_SERVICE_ROLE_KEY` → `node scripts/upload-staging-videos.mjs`. Do not put Stream signing material in `EXPO_PUBLIC_*`.
+- Native: `expo-video` + `hlsUrl`. Web: `hls.js` when `Hls.isSupported()` (MSE); native HLS fallback for Safari iOS. Muted autoplay + tap to unmute.
 
 ## Before launch
 
