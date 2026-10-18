@@ -1,17 +1,24 @@
 import { Image } from 'expo-image';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 
+import { EpisodePlayer } from '@/components/player/EpisodePlayer';
+import { UnlockSheet } from '@/components/player/UnlockSheet';
 import { colors } from '@/constants/colors';
+import { issuePlayback, refreshPlaybackTokens, type PlaybackSession } from '@/lib/playback';
+import { watchEpisodeHref } from '@/lib/routes';
 import { mediaUrl, supabase } from '@/lib/supabase';
+import { getContinueEpisodeForSeries } from '@/lib/watchHistory';
 import { useAuth } from '@/providers/AuthProvider';
 import type { Database } from '@/types/database';
 
@@ -20,13 +27,19 @@ type Episode = Database['public']['Tables']['episodes']['Row'];
 
 export default function SeriesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { width } = useWindowDimensions();
+  const isWebWide = Platform.OS === 'web' && width >= 900;
   const { user, loading: authLoading } = useAuth();
   const [series, setSeries] = useState<Series | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [continueEp, setContinueEp] = useState<Episode | null>(null);
   const [inList, setInList] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [webSession, setWebSession] = useState<PlaybackSession | null>(null);
+  const [webEpisode, setWebEpisode] = useState<Episode | null>(null);
+  const [unlockEp, setUnlockEp] = useState<Episode | null>(null);
 
   const refreshListState = useCallback(async () => {
     if (!user || !id) {
@@ -69,11 +82,18 @@ export default function SeriesScreen() {
     };
   }, [id]);
 
+  const firstEpisode = useMemo(
+    () => episodes.find((e) => e.episode_number === 1) ?? null,
+    [episodes],
+  );
+
   useFocusEffect(
     useCallback(() => {
       if (authLoading) return;
       void refreshListState();
-    }, [authLoading, refreshListState]),
+      if (!user || !id || episodes.length === 0) return;
+      void getContinueEpisodeForSeries(user.id, id, episodes).then(setContinueEp);
+    }, [authLoading, refreshListState, user, id, episodes]),
   );
 
   async function toggleMyList() {
@@ -108,6 +128,35 @@ export default function SeriesScreen() {
     }
   }
 
+  function openEpisode(ep: Episode) {
+    if (!ep.is_free) {
+      setUnlockEp(ep);
+      return;
+    }
+    if (isWebWide) {
+      void playWebEpisode(ep);
+      return;
+    }
+    router.push(watchEpisodeHref(ep.id));
+  }
+
+  async function playWebEpisode(ep: Episode) {
+    setWebEpisode(ep);
+    setWebSession(null);
+    try {
+      const session = await issuePlayback(ep.id);
+      setWebSession(session);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Playback failed');
+    }
+  }
+
+  const playTarget = continueEp ?? firstEpisode;
+  const playLabel =
+    continueEp && continueEp.episode_number > 1
+      ? `Continue EP ${continueEp.episode_number}`
+      : 'Play EP 1';
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -126,15 +175,21 @@ export default function SeriesScreen() {
 
   const poster = mediaUrl(series.poster_path);
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {poster ? (
+  const details = (
+    <>
+      {!isWebWide && poster ? (
         <Image source={{ uri: poster }} style={styles.poster} contentFit="cover" />
-      ) : (
+      ) : !isWebWide ? (
         <View style={[styles.poster, styles.posterFallback]} />
-      )}
+      ) : null}
       <Text style={styles.title}>{series.title}</Text>
       <Text style={styles.synopsis}>{series.synopsis}</Text>
+
+      {playTarget ? (
+        <Pressable style={styles.playButton} onPress={() => openEpisode(playTarget)}>
+          <Text style={styles.playButtonText}>{playLabel}</Text>
+        </Pressable>
+      ) : null}
 
       <Pressable style={styles.button} disabled={busy} onPress={() => void toggleMyList()}>
         <Text style={styles.buttonText}>
@@ -145,15 +200,42 @@ export default function SeriesScreen() {
 
       <Text style={styles.section}>Episodes</Text>
       {episodes.map((ep) => (
-        <View key={ep.id} style={styles.episode}>
+        <Pressable key={ep.id} style={styles.episode} onPress={() => openEpisode(ep)}>
           <Text style={styles.episodeTitle}>
             {ep.episode_number}. {ep.title}
           </Text>
           <Text style={styles.episodeMeta}>
             {ep.is_free ? 'Free' : 'Locked'} · {ep.duration_seconds ?? 0}s
           </Text>
-        </View>
+        </Pressable>
       ))}
+    </>
+  );
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={isWebWide ? styles.webRow : styles.content}>
+      {isWebWide ? (
+        <View style={styles.webPlayerCol}>
+          {webSession && webEpisode ? (
+            <EpisodePlayer
+              key={webSession.playbackUrl}
+              session={webSession}
+              onError={() => void refreshPlaybackTokens(webEpisode.id).then(setWebSession)}
+            />
+          ) : (
+            <View style={styles.webPlayerPlaceholder}>
+              <Text style={styles.webPlayerHint}>Select a free episode to play</Text>
+            </View>
+          )}
+        </View>
+      ) : null}
+      <View style={isWebWide ? styles.webDetailsCol : undefined}>{details}</View>
+
+      <UnlockSheet
+        visible={!!unlockEp}
+        episodeTitle={unlockEp?.title}
+        onClose={() => setUnlockEp(null)}
+      />
     </ScrollView>
   );
 }
@@ -165,6 +247,35 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
+    gap: 12,
+  },
+  webRow: {
+    flexDirection: 'row',
+    padding: 24,
+    gap: 24,
+    alignItems: 'flex-start',
+  },
+  webPlayerCol: {
+    flex: 1,
+    minHeight: 480,
+    maxWidth: 420,
+    aspectRatio: 9 / 16,
+    backgroundColor: '#000',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  webPlayerPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  webPlayerHint: {
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+  webDetailsCol: {
+    flex: 1,
     gap: 12,
   },
   centered: {
@@ -195,6 +306,17 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 15,
     lineHeight: 22,
+  },
+  playButton: {
+    backgroundColor: colors.text,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  playButtonText: {
+    color: colors.background,
+    fontSize: 16,
+    fontWeight: '700',
   },
   button: {
     backgroundColor: colors.surface,

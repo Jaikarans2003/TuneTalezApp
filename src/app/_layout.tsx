@@ -20,6 +20,7 @@ export default function RootLayout() {
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="series/[id]" options={{ title: 'Series' }} />
+        <Stack.Screen name="watch/[episodeId]" options={{ title: 'Watch', headerShown: false }} />
         <Stack.Screen name="sign-in" options={{ title: 'Sign in', presentation: 'modal' }} />
         <Stack.Screen name="auth/callback" options={{ title: 'Signing in', headerShown: false }} />
         <Stack.Screen name="privacy" options={{ title: 'Privacy' }} />

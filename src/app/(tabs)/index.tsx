@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
-import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,15 +11,32 @@ import {
 } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { watchEpisodeHref } from '@/lib/routes';
 import { mediaUrl, supabase } from '@/lib/supabase';
+import { fetchContinueWatching, type ContinueWatchingRow } from '@/lib/watchHistory';
+import { useAuth } from '@/providers/AuthProvider';
 import type { Database } from '@/types/database';
 
 type Series = Database['public']['Tables']['series']['Row'];
 
 export default function HomeScreen() {
+  const { user, loading: authLoading } = useAuth();
   const [series, setSeries] = useState<Series[]>([]);
+  const [continueRows, setContinueRows] = useState<ContinueWatchingRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const loadContinue = useCallback(async () => {
+    if (!user) {
+      setContinueRows([]);
+      return;
+    }
+    try {
+      setContinueRows(await fetchContinueWatching(user.id));
+    } catch {
+      setContinueRows([]);
+    }
+  }, [user]);
 
   useEffect(() => {
     let mounted = true;
@@ -45,6 +62,13 @@ export default function HomeScreen() {
     };
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (authLoading) return;
+      void loadContinue();
+    }, [authLoading, loadContinue]),
+  );
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -63,6 +87,36 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {continueRows.length > 0 ? (
+        <>
+          <Text style={styles.railTitle}>Continue watching</Text>
+          <FlatList
+            horizontal
+            data={continueRows}
+            keyExtractor={(item) => item.series.id}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.rail}
+            renderItem={({ item }) => {
+              const poster = mediaUrl(item.series.poster_path);
+              return (
+                <Link href={watchEpisodeHref(item.episode.id)} asChild>
+                  <Pressable style={styles.card}>
+                    {poster ? (
+                      <Image source={{ uri: poster }} style={styles.poster} contentFit="cover" />
+                    ) : (
+                      <View style={[styles.poster, styles.posterFallback]} />
+                    )}
+                    <Text style={styles.cardTitle} numberOfLines={2}>
+                      {item.series.title}
+                    </Text>
+                    <Text style={styles.cardMeta}>EP {item.episode.episode_number}</Text>
+                  </Pressable>
+                </Link>
+              );
+            }}
+          />
+        </>
+      ) : null}
       <Text style={styles.railTitle}>Series</Text>
       <FlatList
         horizontal
@@ -134,6 +188,10 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 14,
     fontWeight: '500',
+  },
+  cardMeta: {
+    color: colors.textMuted,
+    fontSize: 12,
   },
   error: {
     color: '#B00020',
