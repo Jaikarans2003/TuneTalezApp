@@ -14,7 +14,7 @@ select
   g.n,
   'Episode ' || g.n,
   90 + (g.n * 5),
-  g.n <= 3
+  g.n <= 4
 from public.series s
 cross join generate_series(1, 10) as g(n)
 where s.id in (

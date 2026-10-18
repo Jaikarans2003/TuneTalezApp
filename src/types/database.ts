@@ -21,6 +21,7 @@ export type Database = {
           episode_number: number
           id: string
           is_free: boolean
+          mux_playback_id: string | null
           series_id: string
           title: string
         }
@@ -30,6 +31,7 @@ export type Database = {
           episode_number: number
           id?: string
           is_free?: boolean
+          mux_playback_id?: string | null
           series_id: string
           title?: string
         }
@@ -39,6 +41,7 @@ export type Database = {
           episode_number?: number
           id?: string
           is_free?: boolean
+          mux_playback_id?: string | null
           series_id?: string
           title?: string
         }
